@@ -6,4 +6,4 @@ Non-essential whatsapp images classifier using MobileNet CNN model
 * The idea is to categorize the images and select non-essential whatsapp images among these categories based on confidence scores which can then be deleted in one go instead of having to select them manually for deletion.
 
 ### Final Accuracy of the model
-The model achieved a final accuracy of 94.77% after performing transfer learning on a COCO dataset trained MobileNet model.
+The model achieved a final accuracy of 94.66% after performing transfer learning on a COCO dataset trained MobileNet model.
