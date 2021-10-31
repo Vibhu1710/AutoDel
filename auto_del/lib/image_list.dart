@@ -1,17 +1,30 @@
 import 'dart:collection';
 import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'image_asset.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+const kminSizeNotify = 200;
 
 class ImageList extends ChangeNotifier {
+  bool _selectState = false;
   bool _permit = false;
   List<AssetEntity>? _mediaHouse;
 
   final List<ImageAsset> _imageAsset = [];
   final List<ImageAsset> _selectedAsset = [];
   
+  bool get selectState {
+    return _selectState;
+  }
+  void setSelectState() {
+    _selectState = true;
+  }
+  void resetSelectState() {
+    _selectState = false;
+  }
+
   UnmodifiableListView<ImageAsset> get imageAsset {
     return UnmodifiableListView(_imageAsset);
   }
@@ -24,16 +37,32 @@ class ImageList extends ChangeNotifier {
   {
     return _selectedAsset.length;
   }
-
+  bool isInSelectedList(ImageAsset image)
+  {
+    return _selectedAsset.contains(image);
+  }
   void addSelectedAsset(ImageAsset image)
   {
+    print('added image to selected');
     _selectedAsset.add(image);
+    notifyListeners();
   }
   void removeSelectedAsset(ImageAsset image)
   {
+    print('removed image from selected');
     _selectedAsset.remove(image);
+    if(selectedAssetCount==0) {
+      _selectState =false;
+      HapticFeedback.lightImpact();
+    }
+    notifyListeners();
   }
-
+  void clearSelectionList()
+  {
+    _selectedAsset.clear();
+    _selectState = false;
+    notifyListeners();
+  }
   void deleteImageAsset() async
   { 
     if((imageAssetCount!=0) && (selectedAssetCount!=0))
@@ -44,8 +73,7 @@ class ImageList extends ChangeNotifier {
       {
         _imageAsset.remove(ele);
       }
-      _selectedAsset.clear();
-      notifyListeners();
+      clearSelectionList();
     }
   }
 
@@ -61,6 +89,10 @@ class ImageList extends ChangeNotifier {
       { 
         Uint8List? temp = await asset.thumbDataWithSize(175, 170);
         _imageAsset.add(ImageAsset(id: asset.id, thumbData: temp));
+        if(imageAssetCount % kminSizeNotify == 0)
+        {
+          notifyListeners();
+        }
       }
       notifyListeners();
     }

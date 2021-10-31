@@ -1,5 +1,6 @@
 import 'package:auto_del/image_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'gallery_view.dart';
 
@@ -33,6 +34,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String dynamicTitle()
+  { int count = Provider.of<ImageList>(context).selectedAssetCount;
+    if(count>1)
+    {
+      return '$count images selected';
+    }
+    else
+    {
+      return '$count image selected';
+    }
+  }
 
   @override
   void initState() {
@@ -41,22 +53,33 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(
-              Icons.delete,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Provider.of<ImageList>(context, listen: false).deleteImageAsset();
-            },
-          )
-        ],
+    return WillPopScope(
+      onWillPop: () async {
+        if(Provider.of<ImageList>(context, listen: false).selectState)
+        {
+          Provider.of<ImageList>(context, listen: false).clearSelectionList();
+          HapticFeedback.lightImpact();
+          return false;
+        }
+        return true;
+      }, 
+      child: Scaffold(
+        appBar: AppBar(
+          title: Provider.of<ImageList>(context).selectState ? Text(dynamicTitle()) : Text(widget.title),
+          actions: <Widget>[
+            IconButton(
+              icon: const Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                Provider.of<ImageList>(context, listen: false).deleteImageAsset();
+              },
+            )
+          ],
+        ),
+        body: const GalleryView(),
       ),
-      body: const GalleryView(),
     );
   }
 }
